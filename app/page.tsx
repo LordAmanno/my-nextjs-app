@@ -1,65 +1,141 @@
-import Image from "next/image";
+'use client';
+
+import { useEffect, useState } from 'react';
+import TextBlock from '@/components/blocks/TextBlock';
+import HeroBlock from '@/components/blocks/HeroBlock';
+import ImageBlock from '@/components/blocks/ImageBlock';
+import GalleryBlock from '@/components/blocks/GalleryBlock';
+import TwoColumnBlock from '@/components/blocks/TwoColumnBlock';
+import VideoBlock from '@/components/blocks/VideoBlock';
+import ContactFormBlock from '@/components/blocks/ContactFormBlock';
+import TestimonialsBlock from '@/components/blocks/TestimonialsBlock';
+import SpacerBlock from '@/components/blocks/SpacerBlock';
+
+interface Block {
+  id: number;
+  block_type: string;
+  block_order: number;
+  content: any;
+  styles: any;
+}
+
+const blockComponents: Record<string, any> = {
+  text: TextBlock,
+  hero: HeroBlock,
+  image: ImageBlock,
+  gallery: GalleryBlock,
+  'two-column': TwoColumnBlock,
+  video: VideoBlock,
+  contact: ContactFormBlock,
+  testimonials: TestimonialsBlock,
+  spacer: SpacerBlock,
+};
 
 export default function Home() {
+  const [blocks, setBlocks] = useState<Block[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBlocks() {
+      try {
+        const response = await fetch('/api/blocks');
+        if (response.ok) {
+          const data = await response.json();
+          setBlocks(data);
+        }
+      } catch (error) {
+        console.error('Error fetching blocks:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBlocks();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+      }}>
+        <div style={{
+          fontSize: '24px',
+          color: '#666',
+          fontWeight: '500',
+        }}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  if (blocks.length === 0) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f5f5f5',
+        padding: '40px',
+        textAlign: 'center',
+      }}>
+        <h1 style={{
+          fontSize: '48px',
+          color: '#333',
+          marginBottom: '20px',
+          fontWeight: 'bold',
+        }}>
+          Welcome to Your Website
+        </h1>
+        <p style={{
+          fontSize: '20px',
+          color: '#666',
+          marginBottom: '30px',
+          maxWidth: '600px',
+        }}>
+          Your website is empty. Go to the admin dashboard to start building your page with blocks.
+        </p>
+        <a
+          href="/admin/dashboard"
+          style={{
+            backgroundColor: '#1a1a1a',
+            color: '#ffffff',
+            padding: '15px 40px',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontSize: '18px',
+            fontWeight: '600',
+            display: 'inline-block',
+          }}
+        >
+          Go to Admin Dashboard
+        </a>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main style={{ minHeight: '100vh' }}>
+      {blocks.map((block) => {
+        const BlockComponent = blockComponents[block.block_type];
+
+        if (!BlockComponent) {
+          return null;
+        }
+
+        return (
+          <BlockComponent
+            key={block.id}
+            content={block.content}
+            styles={block.styles}
+          />
+        );
+      })}
+    </main>
   );
 }
